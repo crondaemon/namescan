@@ -48,7 +48,10 @@ static void parse_addresses(char* optarg, scanner_params_t* sp)
         mask = strtok_r(saveptr2, "/", &saveptr2);
 
         addr32 = ntohl(inet_addr(addr));
-        mask32 = atoi(mask);
+        if (mask)
+            mask32 = atoi(mask);
+        else
+            mask32 = 32;
 
         ip_start = htonl(addr32 & (0xFFFFFFFF << (32 - mask32)));
         ip_end = htonl(addr32 | ~(0xFFFFFFFF << (32 - mask32)));
