@@ -65,12 +65,11 @@ struct udphdr sock_set_udphdr()
 int sock_send(int socket, struct sockaddr_in* sin, struct iphdr iphdr,
     struct udphdr udphdr, char* dns, unsigned dnslen)
 {
-    char* data = malloc(1000);
+    char* data = malloc(sizeof(iphdr) + sizeof(udphdr) + dnslen);
     unsigned datalen = 0;
     int c;
 
     if (connect(socket, (struct sockaddr*)sin, sizeof(*sin)) < 0) {
-        LOG_DEBUG("Can't connect\n");
         return -1;
     }
 
@@ -87,7 +86,6 @@ int sock_send(int socket, struct sockaddr_in* sin, struct iphdr iphdr,
     c = send(socket, data, datalen, 0);
     free(data);
     if (c < 0) {
-        LOG_DEBUG("Can't send\n");
         return -1;
     }
     return 0;
