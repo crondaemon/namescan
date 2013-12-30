@@ -20,9 +20,9 @@ static void activate_debug(int argc, char* argv[])
 
 static void usage(char* name)
 {
-    printf("\nUsage: %s [-i <iface>] [-v] [-s <source>] [-d <delay>]", name);
-    printf("\t[-t <timeout>] [-o <outfile>] [-n <domain name>] [-q <type>]");
-    printf("\t[-c <class>] -a <addresses to scan>");
+    printf("Usage: %s [-i <iface>] [-v] [-s <source>] [-d <delay>] ", name);
+    printf("[-t <timeout>] [-o <outfile>] [-n <domain name>] [-q <type>] ");
+    printf("[-c <class>] -a <addresses to scan>");
     printf("\n\n");
 }
 
@@ -82,7 +82,7 @@ int parse_cmdline(int argc, char* argv[], radar_params_t* rp, scanner_params_t* 
 
     activate_debug(argc, argv);
 
-    while ((opt = getopt(argc, argv, "i:vs:d:t:a:o:n:q:c:")) != -1) {
+    while ((opt = getopt(argc, argv, "i:vs:d:t:a:o:n:q:c:h")) != -1) {
         switch (opt) {
             case 'i':
                 rp->dev = strdup(optarg);
@@ -121,6 +121,10 @@ int parse_cmdline(int argc, char* argv[], radar_params_t* rp, scanner_params_t* 
                 break;
             case 'c':
                 sp->qclass = atoi(optarg);
+                break;
+            case 'h':
+                usage(argv[0]);
+                return 1;
                 break;
             default:
                 LOG_ERROR("Error parsing command line\n");
