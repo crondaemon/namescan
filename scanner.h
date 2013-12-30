@@ -27,9 +27,12 @@ typedef struct {
     uint16_t qtype;
     uint16_t qclass;
 
+    bool randomize;
 } scanner_params_t;
 
 extern scanner_params_t scanner_params;
+
+void scanner_set_defaults(scanner_params_t* sp);
 
 void scanner(scanner_params_t*);
 

@@ -22,7 +22,7 @@ static void usage(char* name)
 {
     printf("Usage: %s [-i <iface>] [-v] [-s <source>] [-d <delay>] ", name);
     printf("[-t <timeout>] [-o <outfile>] [-n <domain name>] [-q <type>] ");
-    printf("[-c <class>] -a <addresses to scan>");
+    printf("[-c <class>] [-r] -a <addresses to scan>");
     printf("\n\n");
 }
 
@@ -85,7 +85,7 @@ int parse_cmdline(int argc, char* argv[], radar_params_t* rp, scanner_params_t* 
 
     activate_debug(argc, argv);
 
-    while ((opt = getopt(argc, argv, "i:vs:d:t:a:o:n:q:c:h")) != -1) {
+    while ((opt = getopt(argc, argv, "i:vs:d:t:a:o:n:q:c:hr")) != -1) {
         switch (opt) {
             case 'i':
                 rp->dev = strdup(optarg);
@@ -128,6 +128,9 @@ int parse_cmdline(int argc, char* argv[], radar_params_t* rp, scanner_params_t* 
             case 'h':
                 usage(argv[0]);
                 return 1;
+                break;
+            case 'r':
+                sp->randomize = false;
                 break;
             default:
                 LOG_ERROR("Error parsing command line\n");

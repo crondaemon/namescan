@@ -21,18 +21,10 @@ int main(int argc, char* argv[])
     printf("\n%s - massive DNS scanner\n\n", PACKAGE_STRING);
 
     // Set the default params for the radar
-    radar_params.dev = NULL;
-    radar_params.outfile = NULL;
+    radar_set_defaults(&radar_params);
 
     // Set the params for the scanner
-    scanner_params.ranges_count = 0;
-    scanner_params.ranges = NULL;
-    scanner_params.delay = 0;
-    scanner_params.timeout = 3 * 1000000;
-    scanner_params.saddr = 0;
-    scanner_params.qname = "www.test.com";
-    scanner_params.qtype = 1;
-    scanner_params.qclass = 1;
+    scanner_set_defaults(&scanner_params);
 
     if (parse_cmdline(argc, argv, &radar_params, &scanner_params))
         return 1;

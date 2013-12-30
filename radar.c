@@ -10,6 +10,12 @@
 
 void process_pkt(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes);
 
+void radar_set_defaults(radar_params_t* rp)
+{
+    rp->dev = NULL;
+    rp->outfile = NULL;
+}
+
 pcap_t* radar_init(radar_params_t* rp)
 {
     char errbuf[PCAP_ERRBUF_SIZE];
@@ -18,7 +24,7 @@ pcap_t* radar_init(radar_params_t* rp)
 	bpf_u_int32 net;
 
     if (rp->dev == NULL) {
-        LOG_INFO("No dev specified. Using first\n");
+        LOG_INFO("No interface specified. Using first\n");
         rp->dev = pcap_lookupdev(errbuf);
         if (rp->dev == NULL) {
             LOG_ERROR("Can't lookup device: %s\n", errbuf);

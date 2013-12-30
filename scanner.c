@@ -21,6 +21,19 @@ scanner_params_t scanner_params;
 static unsigned tot = 0;
 static unsigned partial = 0;
 
+void scanner_set_defaults(scanner_params_t* sp)
+{
+    sp->ranges_count = 0;
+    sp->ranges = NULL;
+    sp->delay = 0;
+    sp->timeout = 3 * 1000000;
+    sp->saddr = 0;
+    sp->qname = "www.test.com";
+    sp->qtype = 1;
+    sp->qclass = 1;
+    sp->randomize = true;
+}
+
 void print_stats(int signo)
 {
     static unsigned old_partial = 0;
@@ -43,7 +56,7 @@ void scanner(scanner_params_t* sp)
     int j;
 
     uint32_t ip;
-    uint32_t off = 7;
+    uint32_t off;
     uint32_t ptr;
     uint32_t diff;
 
@@ -59,6 +72,12 @@ void scanner(scanner_params_t* sp)
     if (sock == -1) {
         LOG_ERROR("Can't create socket\n");
         return;
+    }
+
+    if (sp->randomize == false) {
+        off = 1;
+    } else {
+        off = 7; // TODO
     }
 
     struct sockaddr_in sin;
@@ -85,7 +104,7 @@ void scanner(scanner_params_t* sp)
         diff = ntohl(sp->ranges[i].ip_to) - ntohl(sp->ranges[i].ip_from) + 1;
         ptr = ntohl(sp->ranges[i].ip_from);
 
-        if (diff % off == 0) {
+        if (diff % off == 0 && off > 1) {
             printf("%u %u\n", diff, off);
             LOG_ERROR("Collision detected. Specify another offset\n");
             return;

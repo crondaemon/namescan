@@ -13,6 +13,8 @@ typedef struct {
 
 extern radar_params_t radar_params;
 
+void radar_set_defaults(radar_params_t* rp);
+
 pcap_t* radar_init(radar_params_t* rp);
 
 void* radar(void*);
