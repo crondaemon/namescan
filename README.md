@@ -19,7 +19,7 @@ COMPILATION
 ===========
 To compile, just issue the following commands:
 
-    autoreconf *i
+    autoreconf -i
     ./configure
     make
 
