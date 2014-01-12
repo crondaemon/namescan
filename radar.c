@@ -80,6 +80,7 @@ void process_pkt(u_char* args, const struct pcap_pkthdr* h, const u_char* packet
     char buf[INET_ADDRSTRLEN];
 
     if (fingerprint_check(udphdr->dest, *(uint16_t*)dns)) {
+        LOG_INFO("%c[2K", 27);
         LOG_INFO("\rResponse from %s\n", inet_ntop(AF_INET, &iphdr->saddr, buf, INET_ADDRSTRLEN));
         fflush(stdout);
         if (rp->outfile != NULL) {

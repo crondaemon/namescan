@@ -15,11 +15,14 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <signal.h>
+#include <net/ethernet.h>
 
 scanner_params_t scanner_params;
 
 static unsigned tot = 0;
 static unsigned partial = 0;
+
+static unsigned probesize = 0;
 
 void scanner_set_defaults(scanner_params_t* sp)
 {
@@ -39,12 +42,13 @@ void print_stats(int signo)
     static unsigned old_partial = 0;
     unsigned rate = partial - old_partial;
 
-    LOG_INFO("%u/%u (%.2f%%) ", partial, tot, (float)partial/(float)tot*100);
+    LOG_INFO("\r%u/%u (%.2f%%) ", partial, tot, (float)partial/(float)tot*100);
     LOG_INFO("%u pkt/s ", rate);
+    LOG_INFO("%u B/s ", rate * probesize);
 
     unsigned left = (tot - partial) / rate;
 
-    LOG_INFO("- ETA: %u secs\n", left);
+    LOG_INFO("- ETA: %u secs left", left);
     fflush(stdout);
     old_partial = partial;
     alarm(1);
@@ -65,7 +69,7 @@ void scanner(scanner_params_t* sp)
     struct iphdr iphdr;
     struct udphdr udphdr;
 
-    char* dns = malloc(1000);
+    char* dns = malloc(1000); // TODO
     unsigned dnslen;
 
     sock = sock_create();
@@ -99,6 +103,9 @@ void scanner(scanner_params_t* sp)
     alarm(1);
 
     dns_pack(sp->qname, sp->qtype, sp->qclass, dns, &dnslen);
+
+    probesize = sizeof(struct ether_header) + sizeof(struct iphdr) +
+        sizeof(struct udphdr) + dnslen;
 
     for (i = 0; i < sp->ranges_count; i++) {
         diff = ntohl(sp->ranges[i].ip_to) - ntohl(sp->ranges[i].ip_from) + 1;
