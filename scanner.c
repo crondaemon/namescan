@@ -131,8 +131,11 @@ void scanner(scanner_params_t* sp)
             fingerprint_gen(&udphdr.source, (uint16_t*)dns);
 
             if (sock_send(sock, &sin, iphdr, udphdr, dns, dnslen) == -1) {
-                LOG_ERROR("Can't send datagram: %s\n", strerror(errno));
-                return;
+                char buf[INET_ADDRSTRLEN];
+                uint32_t ipn = htonl(ip);
+                LOG_ERROR("Can't send datagram to %s: %s\n",
+                    inet_ntop(AF_INET, &ipn, buf, INET_ADDRSTRLEN),
+                    strerror(errno));
             }
 
             if (sp->delay > 0) {

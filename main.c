@@ -42,5 +42,7 @@ int main(int argc, char* argv[])
     // Scanning finished. Cleaning up stuff
     if (radar_params.outfile)
         fclose(radar_params.outfile);
+
+    printf("\n");
     return 1;
 }
