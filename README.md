@@ -19,14 +19,14 @@ COMPILATION
 ===========
 To compile, just issue the following commands:
 
-    autoreconf *i
+    autoreconf -i
     ./configure
     make
 
 USAGE
 =====
 
-    namescan 0.1 * massive DNS scanner
+    namescan 0.1 - massive DNS scanner
 
     Usage: ./namescan [-i <iface>] [-v] [-s <source>] [-d <delay>] [-t <timeout>] [-o <outfile>]
            [-n <domain name>] [-q <type>] [-c <class>] -a <addresses to scan>
