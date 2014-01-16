@@ -22,7 +22,7 @@ static void usage(char* name)
 {
     printf("Usage: %s [-i <iface>] [-v] [-s <source>] [-d <delay>] ", name);
     printf("[-t <timeout>] [-o <outfile>] [-n <domain name>] [-q <type>] ");
-    printf("[-c <class>] [-r] -a <addresses to scan>");
+    printf("[-c <class>] [-r] <addresses to scan>");
     printf("\n\n");
 }
 
@@ -80,12 +80,14 @@ int parse_cmdline(int argc, char* argv[], radar_params_t* rp, scanner_params_t* 
 {
     int opt;
 
-    if (argc == 1)
+    if (argc == 1) {
         usage(argv[0]);
+        return 1;
+    }
 
     activate_debug(argc, argv);
 
-    while ((opt = getopt(argc, argv, "i:vs:d:t:a:o:n:q:c:hr")) != -1) {
+    while ((opt = getopt(argc, argv, "i:vs:d:t:o:n:q:c:hr")) != -1) {
         switch (opt) {
             case 'i':
                 rp->dev = strdup(optarg);
@@ -104,9 +106,6 @@ int parse_cmdline(int argc, char* argv[], radar_params_t* rp, scanner_params_t* 
             case 't':
                 sp->timeout = strtol(optarg, NULL, 10);
                 LOG_INFO("Timeout: %u\n", sp->timeout);
-                break;
-            case 'a':
-                parse_addresses(optarg, sp);
                 break;
             case 'o':
                 rp->outfile = fopen(optarg, "w");
@@ -137,5 +136,14 @@ int parse_cmdline(int argc, char* argv[], radar_params_t* rp, scanner_params_t* 
                 return 1;
         }
     }
+
+    // The rest of the cmdline contains the addresses to scan
+    if (argc == optind) {
+        usage(argv[0]);
+        return 1;
+    }
+
+    parse_addresses(argv[optind], sp);
+
     return 0;
 }

@@ -133,7 +133,7 @@ void scanner(scanner_params_t* sp)
             if (sock_send(sock, &sin, iphdr, udphdr, dns, dnslen) == -1) {
                 char buf[INET_ADDRSTRLEN];
                 uint32_t ipn = htonl(ip);
-                LOG_ERROR("Can't send datagram to %s: %s\n",
+                LOG_DEBUG("Can't send datagram to %s: %s\n",
                     inet_ntop(AF_INET, &ipn, buf, INET_ADDRSTRLEN),
                     strerror(errno));
             }
