@@ -5,4 +5,6 @@ AC_CONFIG_HEADERS([config.h])
 AC_PROG_CPP
 AM_PROG_CC_C_O
 AC_CONFIG_FILES([Makefile])
+AC_CHECK_LIB([pcap],[pcap_open_live], [], AC_MSG_ERROR([unable to find the pcap_open_live() function]))
+AC_CHECK_LIB([pthread],[pthread_create], [], AC_MSG_ERROR([unable to find the pthread_create() function]))
 AC_OUTPUT
