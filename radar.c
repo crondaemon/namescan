@@ -8,12 +8,15 @@
 #include <net/ethernet.h>
 #include <arpa/inet.h>
 
+extern unsigned probesize;
+
 void process_pkt(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes);
 
 void radar_set_defaults(radar_params_t* rp)
 {
     rp->dev = NULL;
     rp->outfile = NULL;
+	rp->level = 0;
 }
 
 pcap_t* radar_init(radar_params_t* rp)
@@ -78,13 +81,16 @@ void process_pkt(u_char* args, const struct pcap_pkthdr* h, const u_char* packet
         + sizeof(struct udphdr);
 
     char buf[INET_ADDRSTRLEN];
+	float ratio = (float)h->len/(float)probesize;
 
-    if (fingerprint_check(udphdr->dest, *(uint16_t*)dns)) {
+    if (ratio >= rp->level && fingerprint_check(udphdr->dest, *(uint16_t*)dns)) {
         LOG_INFO("%c[2K", 27);
-        LOG_INFO("\rResponse from %s\n", inet_ntop(AF_INET, &iphdr->saddr, buf, INET_ADDRSTRLEN));
+        LOG_INFO("\rResponse from %s, ", inet_ntop(AF_INET, &iphdr->saddr, buf, INET_ADDRSTRLEN));
+		LOG_INFO("amp ratio: %.2f\n", ratio);
         fflush(stdout);
         if (rp->outfile != NULL) {
             fprintf(rp->outfile, "%s\n", buf);
+			fflush(rp->outfile);
         }
     } else {
         LOG_DEBUG("Ignoring packet from %s\n", inet_ntop(AF_INET, &iphdr->saddr, buf, INET_ADDRSTRLEN));

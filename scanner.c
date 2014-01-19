@@ -22,7 +22,7 @@ scanner_params_t scanner_params;
 static unsigned tot = 0;
 static unsigned partial = 0;
 
-static unsigned probesize = 0;
+unsigned probesize = 0;
 
 void scanner_set_defaults(scanner_params_t* sp)
 {
@@ -107,6 +107,8 @@ void scanner(scanner_params_t* sp)
     probesize = sizeof(struct ether_header) + sizeof(struct iphdr) +
         sizeof(struct udphdr) + dnslen;
 
+	LOG_INFO("Probe size: %u\n", probesize);
+
     for (i = 0; i < sp->ranges_count; i++) {
         diff = ntohl(sp->ranges[i].ip_to) - ntohl(sp->ranges[i].ip_from) + 1;
         ptr = ntohl(sp->ranges[i].ip_from);
@@ -122,6 +124,7 @@ void scanner(scanner_params_t* sp)
             ip = ptr + ntohl(sp->ranges[i].ip_from);
 
             //uint32_t ipn = htonl(ip);
+			//char buf[INET_ADDRSTRLEN];
             //LOG_DEBUG("Probing %s\n", inet_ntop(AF_INET, &ipn, buf, INET_ADDRSTRLEN));
 
             sin.sin_addr.s_addr = htonl(ip);
@@ -146,6 +149,7 @@ void scanner(scanner_params_t* sp)
         }
     }
 
-    LOG_DEBUG("Waiting timeout...\n");
+	LOG_INFO("%c[2K", 27);
+    LOG_DEBUG("\rWaiting timeout...\n");
     usleep(sp->timeout);
 }

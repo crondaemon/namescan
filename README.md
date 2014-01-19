@@ -26,10 +26,10 @@ To compile, just issue the following commands:
 USAGE
 =====
 
-    namescan 0.1 - massive DNS scanner
+    namescan 0.1.1 - massive DNS scanner
 
     Usage: ./namescan [-i <iface>] [-v] [-s <source>] [-d <delay>] [-t <timeout>] [-o <outfile>]
-           [-n <domain name>] [-q <type>] [-c <class>] <addresses to scan>
+           [-n <domain name>] [-q <type>] [-c <class>] [-r] [-l <level>] <addresses to scan>
 
  * -i <iface>: the interface to use. If not specified, the first available interface will be used
  * -v: verbose mode
@@ -41,6 +41,7 @@ USAGE
  * -q: query type. Default: 1.
  * -c query class. Default: 1.
  * -r: do not randomize targets.
+ * -l: show only relays that are above this amplification ratio.
  * ip address(es) to scan. See below.
 
 The addresses to scan can be specified as a comma-separated list of CIDR addresses.
