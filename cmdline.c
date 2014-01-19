@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 static void activate_debug(int argc, char* argv[])
 {
@@ -22,7 +23,7 @@ static void usage(char* name)
 {
     printf("Usage: %s [-i <iface>] [-v] [-s <source>] [-d <delay>] ", name);
     printf("[-t <timeout>] [-o <outfile>] [-n <domain name>] [-q <type>] ");
-    printf("[-c <class>] [-r] <addresses to scan>");
+    printf("[-c <class>] [-r] [-l <level>] <addresses to scan>");
     printf("\n\n");
 }
 
@@ -87,7 +88,7 @@ int parse_cmdline(int argc, char* argv[], radar_params_t* rp, scanner_params_t* 
 
     activate_debug(argc, argv);
 
-    while ((opt = getopt(argc, argv, "i:vs:d:t:o:n:q:c:hr")) != -1) {
+    while ((opt = getopt(argc, argv, "i:vs:d:t:o:n:q:c:hrl:")) != -1) {
         switch (opt) {
             case 'i':
                 rp->dev = strdup(optarg);
@@ -104,7 +105,7 @@ int parse_cmdline(int argc, char* argv[], radar_params_t* rp, scanner_params_t* 
                 LOG_INFO("Delay: %u\n", sp->delay);
                 break;
             case 't':
-                sp->timeout = strtol(optarg, NULL, 10);
+                sp->timeout = strtol(optarg, (char**)NULL, 10);
                 LOG_INFO("Timeout: %u\n", sp->timeout);
                 break;
             case 'o':
@@ -131,6 +132,13 @@ int parse_cmdline(int argc, char* argv[], radar_params_t* rp, scanner_params_t* 
             case 'r':
                 sp->randomize = false;
                 break;
+			case 'l':
+				rp->level = strtol(optarg, (char**)NULL, 10);
+				if (rp->level == LONG_MIN || rp->level == LONG_MAX) {
+					LOG_ERROR("Can't convert %s to int\n", optarg);
+					return 1;
+				}
+				break;
             default:
                 LOG_ERROR("Error parsing command line\n");
                 return 1;

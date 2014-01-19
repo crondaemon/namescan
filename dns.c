@@ -33,6 +33,7 @@ void dns_pack(char* qname, uint16_t qtype, uint16_t qclass, char* dns, unsigned*
     *dnslen = 0;
 
     hdr.txid = 0;
+	// Force recursion
     hdr.flags.rd = 1;
     hdr.n_record[0] = htons(1);
 
