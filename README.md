@@ -1,7 +1,10 @@
+
 namescan
 ========
 
 Massive DNS open relay scanner
+
+[![Build Status](https://travis-ci.org/crondaemon/namescan.png?branch=master)](https://travis-ci.org/crondaemon/namescan)
 
 Namescan is a massive port scanner designed specifically for finding open relays.
 An open relay is a DNS server that makes queries on behalf of another host.
