@@ -1,2 +1,2 @@
 language: c
-script: autoreconf -i && make
+script: autoreconf -i && ./configure && make
