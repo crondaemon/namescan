@@ -16,7 +16,7 @@ void radar_set_defaults(radar_params_t* rp)
 {
     rp->dev = NULL;
     rp->outfile = NULL;
-	rp->level = 0;
+  	rp->level = 0;
 }
 
 pcap_t* radar_init(radar_params_t* rp)
@@ -24,7 +24,7 @@ pcap_t* radar_init(radar_params_t* rp)
     char errbuf[PCAP_ERRBUF_SIZE];
     struct bpf_program fp;
     bpf_u_int32 mask;
-	bpf_u_int32 net;
+    bpf_u_int32 net;
 
     if (rp->dev == NULL) {
         LOG_INFO("No interface specified. Using first\n");
@@ -42,31 +42,31 @@ pcap_t* radar_init(radar_params_t* rp)
         exit(1);
     }
 
-	if (pcap_lookupnet(rp->dev, &net, &mask, errbuf) == -1) {
-		LOG_ERROR("Couldn't get netmask for device %s: %s\n", rp->dev, errbuf);
-		exit(1);
-	}
+    if (pcap_lookupnet(rp->dev, &net, &mask, errbuf) == -1) {
+        LOG_ERROR("Couldn't get netmask for device %s: %s\n", rp->dev, errbuf);
+        exit(1);
+    }
 
     LOG_DEBUG("Working on %s\n", rp->dev);
 
-	if (pcap_compile(handle, &fp, "src port 53", 0, net) == -1) {
-		fprintf(stderr, "Couldn't parse filter: %s\n", pcap_geterr(handle));
-		exit(2);
-	}
+    if (pcap_compile(handle, &fp, "src port 53", 0, net) == -1) {
+        fprintf(stderr, "Couldn't parse filter: %s\n", pcap_geterr(handle));
+        exit(2);
+    }
 
-	if (pcap_setfilter(handle, &fp) == -1) {
-		fprintf(stderr, "Couldn't install filter: %s\n", pcap_geterr(handle));
-		exit(2);
-	}
+    if (pcap_setfilter(handle, &fp) == -1) {
+        fprintf(stderr, "Couldn't install filter: %s\n", pcap_geterr(handle));
+        exit(2);
+    }
 
-	return handle;
+    return handle;
 }
 
 void* radar(void* p)
 {
     radar_params_t* rp = (radar_params_t*)p;
     pcap_t* handle = rp->handle;
-	pcap_loop(handle, -1, process_pkt, (u_char*)rp);
+    pcap_loop(handle, -1, process_pkt, (u_char*)rp);
     return NULL;
 }
 
@@ -81,16 +81,16 @@ void process_pkt(u_char* args, const struct pcap_pkthdr* h, const u_char* packet
         + sizeof(struct udphdr);
 
     char buf[INET_ADDRSTRLEN];
-	float ratio = (float)h->len/(float)probesize;
+    float ratio = (float)h->len/(float)probesize;
 
     if (ratio >= rp->level && fingerprint_check(udphdr->dest, *(uint16_t*)dns)) {
         LOG_INFO("%c[2K", 27);
         LOG_INFO("\rResponse from %s, ", inet_ntop(AF_INET, &iphdr->saddr, buf, INET_ADDRSTRLEN));
-		LOG_INFO("amp ratio: %.2f\n", ratio);
+            LOG_INFO("amp ratio: %.2f\n", ratio);
         fflush(stdout);
         if (rp->outfile != NULL) {
             fprintf(rp->outfile, "%s\n", buf);
-			fflush(rp->outfile);
+            fflush(rp->outfile);
         }
     } else {
         LOG_DEBUG("Ignoring packet from %s\n", inet_ntop(AF_INET, &iphdr->saddr, buf, INET_ADDRSTRLEN));

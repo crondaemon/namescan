@@ -16,6 +16,7 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <net/ethernet.h>
+#include <time.h>
 
 scanner_params_t scanner_params;
 
@@ -29,7 +30,7 @@ void scanner_set_defaults(scanner_params_t* sp)
     sp->ranges_count = 0;
     sp->ranges = NULL;
     sp->delay = 0;
-    sp->timeout = 3 * 1000000;
+    sp->timeout = 3;
     sp->saddr = 0;
     sp->qname = "www.test.com";
     sp->qtype = 1;
@@ -42,11 +43,17 @@ void print_stats(int signo)
     static unsigned old_partial = 0;
     unsigned rate = partial - old_partial;
 
+    LOG_INFO("%c[2K", 27);
     LOG_INFO("\r%u/%u (%.2f%%) ", partial, tot, (float)partial/(float)tot*100);
     LOG_INFO("%u pkt/s ", rate);
     LOG_INFO("%u B/s ", rate * probesize);
 
-    unsigned left = (tot - partial) / rate;
+    unsigned left;
+
+    if (rate > 0)
+        left = (tot - partial) / rate;
+    else
+        left = 0;
 
     LOG_INFO("- ETA: %u secs left", left);
     fflush(stdout);
@@ -68,6 +75,9 @@ void scanner(scanner_params_t* sp)
 
     struct iphdr iphdr;
     struct udphdr udphdr;
+
+    struct timespec t = { sp->timeout, 0 };
+    struct timespec rem;
 
     char* dns = malloc(1000); // TODO
     unsigned dnslen;
@@ -107,7 +117,7 @@ void scanner(scanner_params_t* sp)
     probesize = sizeof(struct ether_header) + sizeof(struct iphdr) +
         sizeof(struct udphdr) + dnslen;
 
-	LOG_INFO("Probe size: %u\n", probesize);
+    LOG_INFO("Probe size: %u\n", probesize);
 
     for (i = 0; i < sp->ranges_count; i++) {
         diff = ntohl(sp->ranges[i].ip_to) - ntohl(sp->ranges[i].ip_from) + 1;
@@ -124,7 +134,7 @@ void scanner(scanner_params_t* sp)
             ip = ptr + ntohl(sp->ranges[i].ip_from);
 
             //uint32_t ipn = htonl(ip);
-			//char buf[INET_ADDRSTRLEN];
+            //char buf[INET_ADDRSTRLEN];
             //LOG_DEBUG("Probing %s\n", inet_ntop(AF_INET, &ipn, buf, INET_ADDRSTRLEN));
 
             sin.sin_addr.s_addr = htonl(ip);
@@ -141,15 +151,19 @@ void scanner(scanner_params_t* sp)
                     strerror(errno));
             }
 
-            if (sp->delay > 0) {
-                usleep(sp->delay);
+            t.tv_sec = sp->delay;
+            t.tv_nsec = 0;
+            while (nanosleep(&t, &rem) == -1) {
+                t = rem;
             }
 
             partial++;
         }
     }
 
-	LOG_INFO("%c[2K", 27);
-    LOG_DEBUG("\rWaiting timeout...\n");
-    usleep(sp->timeout);
+    t.tv_sec = sp->timeout;
+    t.tv_nsec = 0;
+    while (nanosleep(&t, &rem) == -1) {
+        t = rem;
+    }
 }
