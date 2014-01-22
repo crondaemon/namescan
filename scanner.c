@@ -36,6 +36,7 @@ void scanner_set_defaults(scanner_params_t* sp)
     sp->qtype = 1;
     sp->qclass = 1;
     sp->randomize = true;
+    sp->edns0 = true;
 }
 
 void print_stats(int signo)
@@ -98,7 +99,7 @@ void scanner(scanner_params_t* sp)
     memset(&sin, 0x0, sizeof(sin));
     sin.sin_family = AF_INET;
     sin.sin_port = htons(53);
-    sin.sin_addr.s_addr = inet_addr("8.8.8.8");
+    sin.sin_addr.s_addr = inet_addr("8.8.8.8"); // TODO
 
     iphdr = sock_set_iphdr(sock, sp->saddr);
     udphdr = sock_set_udphdr();
@@ -112,7 +113,7 @@ void scanner(scanner_params_t* sp)
     signal(SIGALRM, print_stats);
     alarm(1);
 
-    dns_pack(sp->qname, sp->qtype, sp->qclass, dns, &dnslen);
+    dns_pack(sp->qname, sp->qtype, sp->qclass, dns, &dnslen, sp->edns0);
 
     probesize = sizeof(struct ether_header) + sizeof(struct iphdr) +
         sizeof(struct udphdr) + dnslen;

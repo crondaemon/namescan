@@ -28,6 +28,9 @@ typedef struct {
     uint16_t qclass;
 
     bool randomize;
+
+    // Add a edns0 additional record
+    bool edns0;
 } scanner_params_t;
 
 extern scanner_params_t scanner_params;
