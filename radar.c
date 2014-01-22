@@ -73,18 +73,33 @@ void process_pkt(u_char* args, const struct pcap_pkthdr* h, const u_char* packet
 {
     radar_params_t* rp = (radar_params_t*)args;
 
-    struct iphdr* iphdr = (struct iphdr*)(packet + sizeof(struct ether_header));
+    struct ip* ip = (struct ip*)(packet + sizeof(struct ether_header));
     struct udphdr* udphdr = (struct udphdr*)(packet + sizeof(struct ether_header)
-        + sizeof(struct iphdr));
-    const u_char* dns = packet + sizeof(struct ether_header) + sizeof(struct iphdr)
+        + sizeof(struct ip));
+    const u_char* dns = packet + sizeof(struct ether_header) + sizeof(struct ip)
         + sizeof(struct udphdr);
 
     char buf[INET_ADDRSTRLEN];
-    float ratio = (float)h->len/(float)probesize;
+    float ratio = 0;
+
+    // is a fragment 
+    if (ip->ip_off & IP_MF) {
+        printf("GOT A FRAGMENT\n");
+    }
+    
+    // is the last fragment
+    if (!(ip->ip_off & IP_MF) && (ip->ip_off & IP_OFFMASK)) {
+        printf("GOT THE LAST FRAGMENT");
+    }
+    
+    // not a fragment
+    if (!(ip->ip_off & IP_MF)) {
+        ratio = (float)h->len/(float)probesize;
+    }
 
     if (ratio >= rp->level && fingerprint_check(udphdr->dest, *(uint16_t*)dns)) {
         LOG_INFO("%c[2K", 27);
-        LOG_INFO("\rResponse from %s, ", inet_ntop(AF_INET, &iphdr->saddr, buf, INET_ADDRSTRLEN));
+        LOG_INFO("\rResponse from %s, ", inet_ntop(AF_INET, &ip->ip_src, buf, INET_ADDRSTRLEN));
             LOG_INFO("amp ratio: %.2f\n", ratio);
         fflush(stdout);
         if (rp->outfile != NULL) {
@@ -92,6 +107,6 @@ void process_pkt(u_char* args, const struct pcap_pkthdr* h, const u_char* packet
             fflush(rp->outfile);
         }
     } else {
-        LOG_DEBUG("Ignoring packet from %s\n", inet_ntop(AF_INET, &iphdr->saddr, buf, INET_ADDRSTRLEN));
+        LOG_DEBUG("Ignoring packet from %s\n", inet_ntop(AF_INET, &ip->ip_src, buf, INET_ADDRSTRLEN));
     }
 }
