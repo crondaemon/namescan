@@ -61,7 +61,6 @@ void dns_pack(char* qname, uint16_t qtype, uint16_t qclass, char* dns, unsigned*
     memcpy(dns + *dnslen, &temp, 2);
     *dnslen += 2;
 
-    printf("AAAAAAAAAAAAAAAAAAAAAA %d\n", edns0);
     if (edns0 == true) {
         memcpy(dns + *dnslen, edns0_record, sizeof(edns0_record));
         *dnslen += sizeof(edns0_record) - 1;
