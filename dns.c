@@ -24,15 +24,14 @@ void domainname_encode(char* qname, char* qname_enc)
     qname_enc[i + 1] = 0;
 }
 
-void dns_pack(char* qname, uint16_t qtype, uint16_t qclass, char* dns, unsigned* dnslen, bool edns0)
+void dns_pack(char* qname, uint16_t qtype, uint16_t qclass, char** dns, unsigned* dnslen, bool edns0)
 {
     dns_header_t hdr;
     char* qname_enc = malloc(strlen(qname) + 2);
     uint16_t temp;
-    char edns0_record[] = "\x00\x00\x29\x10\x00\x00\x00\x00\x00\x00\x00";
+    char edns0_record[] = { 0x00, 0x00, 0x29, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
     memset(&hdr, 0x0, sizeof(hdr));
-    *dnslen = 0;
 
     // txid will be set by the fingerprint system
     hdr.txid = 0;
@@ -44,25 +43,32 @@ void dns_pack(char* qname, uint16_t qtype, uint16_t qclass, char* dns, unsigned*
         hdr.n_record[3] = htons(1);
     }
 
+    domainname_encode(qname, qname_enc);
+
+    // compute the len of the dns packet
+    *dnslen = sizeof(hdr) // header
+        + strlen(qname) + 2 // qname encoded
+        + 2 // qtype
+        + 2; // qclass
+    if (edns0 == true) {
+        *dnslen += sizeof(edns0_record);
+    }
+
+    (*dns) = (char*)malloc(*dnslen);
+
     // Add the header
-    memcpy(dns, &hdr, sizeof(hdr));
-    *dnslen += sizeof(hdr);
+    memcpy(*dns, &hdr, sizeof(hdr));
 
     // Add the question
-    domainname_encode(qname, qname_enc);
-    memcpy(dns + *dnslen, qname_enc, strlen(qname) + 2);
-    *dnslen += strlen(qname) + 2;
+    memcpy(*dns + sizeof(hdr), qname_enc, strlen(qname) + 2);
 
     temp = htons(qtype);
-    memcpy(dns + *dnslen, &temp, 2);
-    *dnslen += 2;
+    memcpy(*dns + sizeof(hdr) + strlen(qname) + 2, &temp, 2);
 
     temp = htons(qclass);
-    memcpy(dns + *dnslen, &temp, 2);
-    *dnslen += 2;
+    memcpy(*dns + sizeof(hdr) + strlen(qname) + 2 + 2, &temp, 2);
 
     if (edns0 == true) {
-        memcpy(dns + *dnslen, edns0_record, sizeof(edns0_record));
-        *dnslen += sizeof(edns0_record) - 1;
+        memcpy(*dns + sizeof(hdr) + strlen(qname) + 2 + 2 + 2, edns0_record, sizeof(edns0_record));
     }
 }

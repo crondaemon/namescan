@@ -27,11 +27,10 @@ pcap_t* radar_init(radar_params_t* rp)
     bpf_u_int32 net;
 
     if (rp->dev == NULL) {
-        LOG_INFO("No interface specified. Using first\n");
         rp->dev = pcap_lookupdev(errbuf);
         if (rp->dev == NULL) {
             LOG_ERROR("Can't lookup device: %s\n", errbuf);
-            exit(1);
+            return NULL;
         }
     }
 
@@ -39,19 +38,19 @@ pcap_t* radar_init(radar_params_t* rp)
     handle = pcap_open_live(rp->dev, BUFSIZ, 1, 1000, errbuf);
     if (handle == NULL) {
         LOG_ERROR("Can't open live %s: %s\n", rp->dev, errbuf);
-        exit(1);
+        return NULL;
     }
 
     if (pcap_lookupnet(rp->dev, &net, &mask, errbuf) == -1) {
         LOG_ERROR("Couldn't get netmask for device %s: %s\n", rp->dev, errbuf);
-        exit(1);
+        return NULL;
     }
 
     LOG_DEBUG("Working on %s\n", rp->dev);
 
     if (pcap_compile(handle, &fp, "src port 53", 0, net) == -1) {
         fprintf(stderr, "Couldn't parse filter: %s\n", pcap_geterr(handle));
-        exit(2);
+        return NULL;
     }
 
     if (pcap_setfilter(handle, &fp) == -1) {
