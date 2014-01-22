@@ -80,8 +80,8 @@ void scanner(scanner_params_t* sp)
     struct timespec t = { sp->timeout, 0 };
     struct timespec rem;
 
-    char* dns = malloc(1000); // TODO
-    unsigned dnslen;
+    char* dns;
+    unsigned dnslen = 0;
 
     sock = sock_create();
     if (sock == -1) {
@@ -99,7 +99,6 @@ void scanner(scanner_params_t* sp)
     memset(&sin, 0x0, sizeof(sin));
     sin.sin_family = AF_INET;
     sin.sin_port = htons(53);
-    sin.sin_addr.s_addr = inet_addr("8.8.8.8"); // TODO
 
     iphdr = sock_set_iphdr(sock, sp->saddr);
     udphdr = sock_set_udphdr();
@@ -113,7 +112,7 @@ void scanner(scanner_params_t* sp)
     signal(SIGALRM, print_stats);
     alarm(1);
 
-    dns_pack(sp->qname, sp->qtype, sp->qclass, dns, &dnslen, sp->edns0);
+    dns_pack(sp->qname, sp->qtype, sp->qclass, &dns, &dnslen, sp->edns0);
 
     probesize = sizeof(struct ether_header) + sizeof(struct iphdr) +
         sizeof(struct udphdr) + dnslen;
@@ -142,7 +141,7 @@ void scanner(scanner_params_t* sp)
             iphdr.daddr = sin.sin_addr.s_addr;
 
             // add a fingerprint into txid and source port
-            fingerprint_gen(&udphdr.source, (uint16_t*)dns);
+            fingerprint_gen(&udphdr.source, (uint16_t*)&dns[0]);
 
             if (sock_send(sock, &sin, iphdr, udphdr, dns, dnslen) == -1) {
                 char buf[INET_ADDRSTRLEN];
