@@ -7,8 +7,12 @@
 #include <netinet/udp.h>
 #include <net/ethernet.h>
 #include <arpa/inet.h>
+#include <list.h>
+#include <dns.h>
 
 extern unsigned probesize;
+
+static fragnode_t* head = NULL;
 
 void process_pkt(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes);
 
@@ -48,7 +52,8 @@ pcap_t* radar_init(radar_params_t* rp)
 
     LOG_DEBUG("Working on %s\n", rp->dev);
 
-    if (pcap_compile(handle, &fp, "src port 53", 0, net) == -1) {
+    // udp port 53 or fragment
+    if (pcap_compile(handle, &fp, "src port 53 or ((ip[6:2] > 0) and (not ip[6] = 64))", 0, net) == -1) {
         fprintf(stderr, "Couldn't parse filter: %s\n", pcap_geterr(handle));
         return NULL;
     }
@@ -69,29 +74,81 @@ void* radar(void* p)
     return NULL;
 }
 
+void print_server(struct ip* ip, float ratio, FILE* fp)
+{
+    char buf[INET_ADDRSTRLEN];
+    LOG_INFO("%c[2K", 27);
+    LOG_INFO("\rResponse from %s, ", inet_ntop(AF_INET, &ip->ip_src, buf, INET_ADDRSTRLEN));
+        LOG_INFO("amp ratio: %.2f\n", ratio);
+    fflush(stdout);
+    if (fp != NULL) {
+        fprintf(fp, "%s\n", buf);
+        fflush(fp);
+    }
+}
+
+#define IS_FIRST_FRAGMENT(ip) (((ntohs(ip->ip_off)) & IP_MF)==IP_MF && (((ntohs(ip->ip_off)) & IP_OFFMASK) == 0))
+#define IS_INNER_FRAGMENT(ip) (((ntohs(ip->ip_off)) & IP_MF) && ((ntohs(ip->ip_off)) & IP_OFFMASK))
+#define IS_LAST_FRAGMENT(ip) ((!((ntohs(ip->ip_off)) & IP_MF)) && ((ntohs(ip->ip_off)) & IP_OFFMASK))
+#define IS_NOT_FRAGMENT(ip) ((!((ntohs(ip->ip_off)) & IP_MF)) && (!((ntohs(ip->ip_off)) & IP_OFFMASK)))
+
 void process_pkt(u_char* args, const struct pcap_pkthdr* h, const u_char* packet)
 {
     radar_params_t* rp = (radar_params_t*)args;
 
-    struct iphdr* iphdr = (struct iphdr*)(packet + sizeof(struct ether_header));
-    struct udphdr* udphdr = (struct udphdr*)(packet + sizeof(struct ether_header)
-        + sizeof(struct iphdr));
-    const u_char* dns = packet + sizeof(struct ether_header) + sizeof(struct iphdr)
-        + sizeof(struct udphdr);
+    struct ip* ip = (struct ip*)(packet + sizeof(struct ether_header));
+    struct udphdr* udphdr;
+    dns_header_t* dnshdr;
 
     char buf[INET_ADDRSTRLEN];
-    float ratio = (float)h->len/(float)probesize;
+    float ratio = 0;
 
-    if (ratio >= rp->level && fingerprint_check(udphdr->dest, *(uint16_t*)dns)) {
-        LOG_INFO("%c[2K", 27);
-        LOG_INFO("\rResponse from %s, ", inet_ntop(AF_INET, &iphdr->saddr, buf, INET_ADDRSTRLEN));
-            LOG_INFO("amp ratio: %.2f\n", ratio);
-        fflush(stdout);
-        if (rp->outfile != NULL) {
-            fprintf(rp->outfile, "%s\n", buf);
-            fflush(rp->outfile);
+    fragnode_t* fragnode;
+
+    if (IS_FIRST_FRAGMENT(ip)) {
+        if (h->len < (sizeof(struct ether_header) + sizeof(struct ip)
+                + sizeof(struct udphdr) + sizeof(dns_header_t))) {
+            LOG_DEBUG("Short packet. Discarding");
+            break;
         }
-    } else {
-        LOG_DEBUG("Ignoring packet from %s\n", inet_ntop(AF_INET, &iphdr->saddr, buf, INET_ADDRSTRLEN));
+        udphdr = (struct udphdr*)(packet + sizeof(struct ether_header)
+            + sizeof(struct ip));
+        dnshdr = (dns_header_t*)(packet + sizeof(struct ether_header) + sizeof(struct ip)
+            + sizeof(struct udphdr));
+        if (fingerprint_check(udphdr->dest, dnshdr->txid))
+            fragnode_add(&head, ip->ip_id, ip->ip_src, ip->ip_dst, h->len);
+    }
+
+    if (IS_INNER_FRAGMENT(ip)) {
+        fragnode_update(head, ip->ip_id, ip->ip_src, ip->ip_dst, h->len);
+    }
+
+    if (IS_LAST_FRAGMENT(ip)) {
+        fragnode = fragnode_update(head, ip->ip_id, ip->ip_src, ip->ip_dst, h->len);
+        if (fragnode == NULL)
+            break;
+        fragnode_unlink(&head, fragnode);
+        ratio = (float)fragnode->size/(float)probesize;
+        if (ratio >= rp->level)
+            print_server(ip, ratio, rp->outfile);
+        free(fragnode);
+    }
+
+    if (IS_NOT_FRAGMENT(ip)) {
+        if (h->len < (sizeof(struct ether_header) + sizeof(struct ip)
+                + sizeof(struct udphdr) + sizeof(dns_header_t))) {
+            LOG_DEBUG("Short packet. Discarding");
+            break;
+        }
+        udphdr = (struct udphdr*)(packet + sizeof(struct ether_header)
+            + sizeof(struct ip));
+        dnshdr = (dns_header_t*)(packet + sizeof(struct ether_header) + sizeof(struct ip)
+            + sizeof(struct udphdr));
+        ratio = (float)h->len/(float)probesize;
+        if (ratio >= rp->level && fingerprint_check(udphdr->dest, dnshdr->txid)) {
+            print_server(ip, ratio, rp->outfile);
+        } else {
+            LOG_DEBUG("Ignoring packet from %s\n", inet_ntop(AF_INET, &ip->ip_src, buf, INET_ADDRSTRLEN));
+        }
     }
 }
