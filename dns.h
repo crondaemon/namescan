@@ -3,6 +3,7 @@
 #define __DNS_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #pragma pack(1)
 typedef struct {
@@ -37,6 +38,6 @@ typedef struct {
     uint16_t n_record[4];
 } dns_header_t;
 
-void dns_pack(char* qname, uint16_t qtype, uint16_t qclass, char* dns, unsigned* dnslen);
+void dns_pack(char* qname, uint16_t qtype, uint16_t qclass, char* dns, unsigned* dnslen, bool edns0);
 
 #endif

@@ -23,7 +23,7 @@ static void usage(char* name)
 {
     printf("Usage: %s [-i <iface>] [-v] [-s <source>] [-d <delay>] ", name);
     printf("[-t <timeout>] [-o <outfile>] [-n <domain name>] [-q <type>] ");
-    printf("[-c <class>] [-r] [-l <level>] <addresses to scan>");
+    printf("[-c <class>] [-r] [-l <level>] [-e] <addresses to scan>");
     printf("\n\n");
 }
 
@@ -80,6 +80,7 @@ static void parse_addresses(char* optarg, scanner_params_t* sp)
 int parse_cmdline(int argc, char* argv[], radar_params_t* rp, scanner_params_t* sp)
 {
     int opt;
+    int val;
 
     if (argc == 1) {
         usage(argv[0]);
@@ -88,7 +89,7 @@ int parse_cmdline(int argc, char* argv[], radar_params_t* rp, scanner_params_t* 
 
     activate_debug(argc, argv);
 
-    while ((opt = getopt(argc, argv, "i:vs:d:t:o:n:q:c:hrl:")) != -1) {
+    while ((opt = getopt(argc, argv, "i:vs:d:t:o:n:q:c:hrl:e")) != -1) {
         switch (opt) {
             case 'i':
                 rp->dev = strdup(optarg);
@@ -101,11 +102,21 @@ int parse_cmdline(int argc, char* argv[], radar_params_t* rp, scanner_params_t* 
                 sp->saddr = inet_addr(optarg);
                 break;
             case 'd':
-                sp->delay = strtol(optarg, NULL, 10);
+                val = strtol(optarg, (char**)NULL, 10);
+                if (val == LONG_MIN || val == LONG_MAX || val <= 0) {
+                    LOG_ERROR("Can't convert %s to a valid int\n", optarg);
+                    return 1;
+                }
+                sp->delay = val;
                 LOG_INFO("Delay: %u\n", sp->delay);
                 break;
             case 't':
-                sp->timeout = strtol(optarg, (char**)NULL, 10);
+                val = strtol(optarg, (char**)NULL, 10);
+                if (val == LONG_MIN || val == LONG_MAX || val <= 0) {
+                    LOG_ERROR("Can't convert %s to a valid int\n", optarg);
+                    return 1;
+                }
+                sp->timeout = val;
                 LOG_INFO("Timeout: %u\n", sp->timeout);
                 break;
             case 'o':
@@ -120,10 +131,22 @@ int parse_cmdline(int argc, char* argv[], radar_params_t* rp, scanner_params_t* 
                 sp->qname = strdup(optarg);
                 break;
             case 'q':
-                sp->qtype = atoi(optarg);
+                val = strtol(optarg, (char**)NULL, 10);
+                if (val == LONG_MIN || val == LONG_MAX || val <= 0) {
+                    LOG_ERROR("Can't convert %s to a valid int\n", optarg);
+                    return 1;
+                }
+                sp->qtype = val;
+                LOG_INFO("Qtype: %u\n", sp->qtype);
                 break;
             case 'c':
-                sp->qclass = atoi(optarg);
+                val = strtol(optarg, (char**)NULL, 10);
+                if (val == LONG_MIN || val == LONG_MAX || val <= 0) {
+                    LOG_ERROR("Can't convert %s to a valid int\n", optarg);
+                    return 1;
+                }
+                sp->qclass = val;
+                LOG_INFO("Qclass: %u\n", sp->qclass);
                 break;
             case 'h':
                 usage(argv[0]);
@@ -133,12 +156,18 @@ int parse_cmdline(int argc, char* argv[], radar_params_t* rp, scanner_params_t* 
                 sp->randomize = false;
                 break;
 			case 'l':
-				rp->level = strtol(optarg, (char**)NULL, 10);
-				if (rp->level == LONG_MIN || rp->level == LONG_MAX) {
-					LOG_ERROR("Can't convert %s to int\n", optarg);
+				val = strtol(optarg, (char**)NULL, 10);
+				if (val == LONG_MIN || val == LONG_MAX || val <= 0) {
+					LOG_ERROR("Can't convert %s to a valid int\n", optarg);
 					return 1;
 				}
+				rp->level = val;
+				LOG_INFO("Minimum amplification ratio: %u\n", rp->level);
 				break;
+			case 'e':
+			    sp->edns0 = false;
+			    LOG_INFO("EDNS0 record disabled\n");
+			    break;
             default:
                 LOG_ERROR("Error parsing command line\n");
                 return 1;
