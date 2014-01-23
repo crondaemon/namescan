@@ -109,7 +109,7 @@ void process_pkt(u_char* args, const struct pcap_pkthdr* h, const u_char* packet
         if (h->len < (sizeof(struct ether_header) + sizeof(struct ip)
                 + sizeof(struct udphdr) + sizeof(dns_header_t))) {
             LOG_DEBUG("Short packet. Discarding");
-            break;
+            return;
         }
         udphdr = (struct udphdr*)(packet + sizeof(struct ether_header)
             + sizeof(struct ip));
@@ -126,7 +126,7 @@ void process_pkt(u_char* args, const struct pcap_pkthdr* h, const u_char* packet
     if (IS_LAST_FRAGMENT(ip)) {
         fragnode = fragnode_update(head, ip->ip_id, ip->ip_src, ip->ip_dst, h->len);
         if (fragnode == NULL)
-            break;
+            return;
         fragnode_unlink(&head, fragnode);
         ratio = (float)fragnode->size/(float)probesize;
         if (ratio >= rp->level)
@@ -138,7 +138,7 @@ void process_pkt(u_char* args, const struct pcap_pkthdr* h, const u_char* packet
         if (h->len < (sizeof(struct ether_header) + sizeof(struct ip)
                 + sizeof(struct udphdr) + sizeof(dns_header_t))) {
             LOG_DEBUG("Short packet. Discarding");
-            break;
+            return;
         }
         udphdr = (struct udphdr*)(packet + sizeof(struct ether_header)
             + sizeof(struct ip));

@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <log.h>
 
-static void fragnode_print(fragnode_t* fragnode)
+void fragnode_print(fragnode_t* fragnode)
 {
     printf("NODE: %p, %u %u %u %lu\n", fragnode, fragnode->ipid, fragnode->src.s_addr,
         fragnode->dst.s_addr, fragnode->size);
