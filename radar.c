@@ -92,6 +92,8 @@ void print_server(struct ip* ip, float ratio, FILE* fp)
 #define IS_LAST_FRAGMENT(ip) ((!((ntohs(ip->ip_off)) & IP_MF)) && ((ntohs(ip->ip_off)) & IP_OFFMASK))
 #define IS_NOT_FRAGMENT(ip) ((!((ntohs(ip->ip_off)) & IP_MF)) && (!((ntohs(ip->ip_off)) & IP_OFFMASK)))
 
+#define RCODE_OK(h) ((h)->flags.rcode != 0 ? 0 : 1)
+
 void process_pkt(u_char* args, const struct pcap_pkthdr* h, const u_char* packet)
 {
     radar_params_t* rp = (radar_params_t*)args;
@@ -108,13 +110,20 @@ void process_pkt(u_char* args, const struct pcap_pkthdr* h, const u_char* packet
     if (IS_FIRST_FRAGMENT(ip)) {
         if (h->len < (sizeof(struct ether_header) + sizeof(struct ip)
                 + sizeof(struct udphdr) + sizeof(dns_header_t))) {
-            LOG_DEBUG("Short packet. Discarding");
+            LOG_DEBUG("\nShort packet. Discarding");
             return;
         }
         udphdr = (struct udphdr*)(packet + sizeof(struct ether_header)
             + sizeof(struct ip));
         dnshdr = (dns_header_t*)(packet + sizeof(struct ether_header) + sizeof(struct ip)
             + sizeof(struct udphdr));
+        
+        if (!RCODE_OK(dnshdr)) {
+            LOG_DEBUG("\nForbidden resolution for %s, discarding\n", 
+                inet_ntop(AF_INET, &ip->ip_src, buf, INET_ADDRSTRLEN));
+            return;
+        }
+        
         if (fingerprint_check(udphdr->dest, dnshdr->txid))
             fragnode_add(&head, ip->ip_id, ip->ip_src, ip->ip_dst, h->len);
     }
@@ -137,7 +146,7 @@ void process_pkt(u_char* args, const struct pcap_pkthdr* h, const u_char* packet
     if (IS_NOT_FRAGMENT(ip)) {
         if (h->len < (sizeof(struct ether_header) + sizeof(struct ip)
                 + sizeof(struct udphdr) + sizeof(dns_header_t))) {
-            LOG_DEBUG("Short packet. Discarding");
+            LOG_DEBUG("\nShort packet. Discarding");
             return;
         }
         udphdr = (struct udphdr*)(packet + sizeof(struct ether_header)
@@ -145,10 +154,17 @@ void process_pkt(u_char* args, const struct pcap_pkthdr* h, const u_char* packet
         dnshdr = (dns_header_t*)(packet + sizeof(struct ether_header) + sizeof(struct ip)
             + sizeof(struct udphdr));
         ratio = (float)h->len/(float)probesize;
+        
+        if (!RCODE_OK(dnshdr)) {
+            LOG_DEBUG("\nForbidden resolution for %s, discarding\n", 
+                inet_ntop(AF_INET, &ip->ip_src, buf, INET_ADDRSTRLEN));
+            return;
+        }
+        
         if (ratio >= rp->level && fingerprint_check(udphdr->dest, dnshdr->txid)) {
             print_server(ip, ratio, rp->outfile);
         } else {
-            LOG_DEBUG("Ignoring packet from %s\n", inet_ntop(AF_INET, &ip->ip_src, buf, INET_ADDRSTRLEN));
+            LOG_DEBUG("\nIgnoring packet from %s\n", inet_ntop(AF_INET, &ip->ip_src, buf, INET_ADDRSTRLEN));
         }
     }
 }
