@@ -6,7 +6,7 @@
 
 void fragnode_print(fragnode_t* fragnode)
 {
-    printf("NODE: %p, %u %u %u %lu\n", fragnode, fragnode->ipid, fragnode->src.s_addr,
+    printf("NODE: %p, %u %u %u %zu\n", fragnode, fragnode->ipid, fragnode->src.s_addr,
         fragnode->dst.s_addr, fragnode->size);
 }
 
