@@ -1,5 +1,7 @@
 
 #include <cmdline.h>
+
+#include <dns.h>
 #include <unistd.h>
 #include <string.h>
 #include <arpa/inet.h>
@@ -64,10 +66,7 @@ static void parse_addresses(char* optarg, scanner_params_t* sp)
         sp->ranges_count++;
 
         if (sp->ranges == NULL || sizeof(sp->ranges) < sizeof(ip_range_t) * sp->ranges_count) {
-/*            printf("REALLOC %u\n", sp->ranges_count);*/
             sp->ranges = realloc(sp->ranges, sizeof(ip_range_t) * sp->ranges_count);
-        } else {
-/*            printf("JUMP %u\n", sizeof(sp->ranges));*/
         }
 
         sp->ranges[sp->ranges_count - 1].ip_from = ip_start;
@@ -128,25 +127,34 @@ int parse_cmdline(int argc, char* argv[], radar_params_t* rp, scanner_params_t* 
                 LOG_INFO("Writing output to %s\n", optarg);
                 break;
             case 'n':
+                free(sp->qname);
                 sp->qname = strdup(optarg);
                 break;
             case 'q':
                 val = strtol(optarg, (char**)NULL, 10);
                 if (val == LONG_MIN || val == LONG_MAX || val <= 0) {
-                    LOG_ERROR("Can't convert %s to a valid int\n", optarg);
-                    return 1;
+                    val = 0;
+                    val = string_to_qtype(optarg);
+                    if (val == 0) {
+                        LOG_ERROR("Can't convert %s to a valid qtype\n", optarg);
+                        return 1;
+                    }
                 }
                 sp->qtype = val;
-                LOG_INFO("Qtype: %u\n", sp->qtype);
+                LOG_INFO("Qtype: %s (%u)\n", optarg, sp->qtype);
                 break;
             case 'c':
                 val = strtol(optarg, (char**)NULL, 10);
                 if (val == LONG_MIN || val == LONG_MAX || val <= 0) {
-                    LOG_ERROR("Can't convert %s to a valid int\n", optarg);
-                    return 1;
+                    val = 0;
+                    val = string_to_qclass(optarg);
+                    if (val == 0) {
+                        LOG_ERROR("Can't convert %s to a valid int\n", optarg);
+                        return 1;
+                    }
                 }
                 sp->qclass = val;
-                LOG_INFO("Qclass: %u\n", sp->qclass);
+                LOG_INFO("Qclass: %s (%u)\n", optarg, sp->qclass);
                 break;
             case 'h':
                 usage(argv[0]);

@@ -40,4 +40,8 @@ typedef struct {
 
 void dns_pack(char* qname, uint16_t qtype, uint16_t qclass, char** dns, unsigned* dnslen, bool edns0);
 
+int string_to_qtype(char* qtype_s);
+
+int string_to_qclass(char* qclass_s);
+
 #endif

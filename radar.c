@@ -16,11 +16,12 @@ static fragnode_t* head = NULL;
 
 void process_pkt(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes);
 
-void radar_set_defaults(radar_params_t* rp)
+int radar_set_defaults(radar_params_t* rp)
 {
     rp->dev = NULL;
     rp->outfile = NULL;
   	rp->level = 0;
+  	return 0;
 }
 
 pcap_t* radar_init(radar_params_t* rp)
@@ -117,13 +118,13 @@ void process_pkt(u_char* args, const struct pcap_pkthdr* h, const u_char* packet
             + sizeof(struct ip));
         dnshdr = (dns_header_t*)(packet + sizeof(struct ether_header) + sizeof(struct ip)
             + sizeof(struct udphdr));
-        
+
         if (!RCODE_OK(dnshdr)) {
-            LOG_DEBUG("\nForbidden resolution for %s, discarding\n", 
+            LOG_DEBUG("\nForbidden resolution for %s, discarding\n",
                 inet_ntop(AF_INET, &ip->ip_src, buf, INET_ADDRSTRLEN));
             return;
         }
-        
+
         if (fingerprint_check(udphdr->dest, dnshdr->txid))
             fragnode_add(&head, ip->ip_id, ip->ip_src, ip->ip_dst, h->len);
     }
@@ -154,13 +155,13 @@ void process_pkt(u_char* args, const struct pcap_pkthdr* h, const u_char* packet
         dnshdr = (dns_header_t*)(packet + sizeof(struct ether_header) + sizeof(struct ip)
             + sizeof(struct udphdr));
         ratio = (float)h->len/(float)probesize;
-        
+
         if (!RCODE_OK(dnshdr)) {
-            LOG_DEBUG("\nForbidden resolution for %s, discarding\n", 
+            LOG_DEBUG("\nForbidden resolution for %s, discarding\n",
                 inet_ntop(AF_INET, &ip->ip_src, buf, INET_ADDRSTRLEN));
             return;
         }
-        
+
         if (ratio >= rp->level && fingerprint_check(udphdr->dest, dnshdr->txid)) {
             print_server(ip, ratio, rp->outfile);
         } else {

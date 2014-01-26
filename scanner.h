@@ -35,7 +35,7 @@ typedef struct {
 
 extern scanner_params_t scanner_params;
 
-void scanner_set_defaults(scanner_params_t* sp);
+int scanner_set_defaults(scanner_params_t* sp);
 
 void scanner(scanner_params_t*);
 

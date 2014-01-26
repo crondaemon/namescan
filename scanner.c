@@ -25,18 +25,40 @@ static unsigned partial = 0;
 
 unsigned probesize = 0;
 
-void scanner_set_defaults(scanner_params_t* sp)
+int scanner_set_defaults(scanner_params_t* sp)
 {
+    #define BUFLEN 100
+    char name[BUFLEN];
+    char domain[BUFLEN];
+    unsigned size;
+
     sp->ranges_count = 0;
     sp->ranges = NULL;
     sp->delay = 0;
     sp->timeout = 3;
     sp->saddr = 0;
-    sp->qname = "www.test.com";
     sp->qtype = 1;
     sp->qclass = 1;
     sp->randomize = true;
     sp->edns0 = true;
+
+    if (gethostname(name, BUFLEN) == -1) {
+        LOG_ERROR("Can't get hostname: %s\n", strerror(errno));
+        return 1;
+    }
+    if (getdomainname(domain, BUFLEN) == -1) {
+        LOG_ERROR("Can't get domain name: %s\n", strerror(errno));
+        return 1;
+    }
+
+    if (strncmp(domain, "(none)", 6) == 0) {
+        sp->qname = strdup(name);
+    } else {
+        size = strlen(name) + strlen(domain) + 2;
+        sp->qname = (char*)malloc(size);
+        snprintf(sp->qname, size, "%s.%s", name, domain);
+    }
+    return 0;
 }
 
 void print_stats(int signo)
@@ -107,7 +129,7 @@ void scanner(scanner_params_t* sp)
         tot += ntohl(sp->ranges[i].ip_to) - ntohl(sp->ranges[i].ip_from) + 1;
     }
 
-    LOG_INFO("%u addresses to probe\n", tot);
+    LOG_INFO("%u address%s to probe\n", tot, tot > 1 ? "es" : "");
 
     signal(SIGALRM, print_stats);
     alarm(1);

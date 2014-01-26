@@ -22,10 +22,12 @@ int main(int argc, char* argv[])
     printf("\n%s - massive DNS scanner\n\n", PACKAGE_STRING);
 
     // Set the default params for the radar
-    radar_set_defaults(&radar_params);
+    if (radar_set_defaults(&radar_params))
+        return 1;
 
     // Set the params for the scanner
-    scanner_set_defaults(&scanner_params);
+    if (scanner_set_defaults(&scanner_params))
+        return 1;
 
     if (parse_cmdline(argc, argv, &radar_params, &scanner_params))
         return 1;
@@ -37,11 +39,11 @@ int main(int argc, char* argv[])
     // Start a separate thread for the radar
     radar_params.handle = radar_init(&radar_params);
     if (radar_params.handle == NULL) {
-        LOG_ERROR("Error in libpcap");
+        LOG_ERROR("Error in libpcap\n");
         return 1;
     }
     if (pthread_create(&t, NULL, radar, &radar_params)) {
-        LOG_ERROR("Can't create thread");
+        LOG_ERROR("Can't create thread\n");
         return 1;
     }
 
