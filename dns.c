@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <log.h>
 
 void domainname_encode(char* qname, char* qname_enc)
 {
@@ -44,6 +45,7 @@ void dns_pack(char* qname, uint16_t qtype, uint16_t qclass, char** dns, unsigned
         hdr.n_record[3] = htons(1);
     }
 
+    LOG_INFO("Using record: %s\n", qname);
     domainname_encode(qname, qname_enc);
 
     // compute the len of the dns packet
@@ -152,5 +154,91 @@ int string_to_qclass(char* qclass_s)
     CONVERT_DNS_TYPE(qclass_s, "HS", 4);
     CONVERT_DNS_TYPE(qclass_s, "NONE", 254);
     CONVERT_DNS_TYPE(qclass_s, "ANY", 255);
+    return 0;
+}
+
+static char* rcode_to_string(uint8_t rcode, char* s, unsigned s_len)
+{
+    memset(s, 0x0, s_len);
+
+    switch(rcode) {
+        case 0:
+            strncat(s, "No error", s_len);
+            break;
+        case 1:
+            strncat(s, "Format error", s_len);
+            break;
+        case 2:
+            strncat(s, "Server error", s_len);
+            break;
+        case 3:
+            strncat(s, "Non existent domain", s_len);
+            break;
+        case 4:
+            strncat(s, "Not implemented", s_len);
+            break;
+        case 5:
+            strncat(s, "Refused", s_len);
+            break;
+        case 6:
+            strncat(s, "Name Exists when it should not", s_len);
+            break;
+        case 7:
+            strncat(s, "RR Set Exists when it should not", s_len);
+            break;
+        case 8:
+            strncat(s, "RR Set that should exist does not", s_len);
+            break;
+        case 9:
+            strncat(s, "Not Authorized", s_len);
+            break;
+        case 10:
+            strncat(s, "Name not contained in zone", s_len);
+            break;
+        case 16:
+            strncat(s, "Bad OPT Version", s_len);
+            break;
+        case 17:
+            strncat(s, "Key not recognized", s_len);
+            break;
+        case 18:
+            strncat(s, "Signature out of time window", s_len);
+            break;
+        case 19:
+            strncat(s, "Bad TKEY Mode", s_len);
+            break;
+        case 20:
+            strncat(s, "Duplicate key name", s_len);
+            break;
+        case 21:
+            strncat(s, "Algorithm not supported", s_len);
+            break;
+        case 22:
+            strncat(s, "Bad Truncation", s_len);
+            break;
+        default:
+            LOG_ERROR("Unassigned RCODE");
+    }
+    return s;
+}
+
+int rcode_check(struct ip* ip, dns_header_t* dnshdr)
+{
+    char msgbuf[100];
+    char buf[INET_ADDRSTRLEN];
+
+    switch(dnshdr->flags.rcode) {
+        case 0:
+            return 0;
+        case 5:
+        case 9:
+            LOG_DEBUG("Not allowed from %s\n", inet_ntop(AF_INET, &ip->ip_src, buf, INET_ADDRSTRLEN));
+            return 1;
+        default:
+            LOG_ERROR("Error from %s: %s\n", inet_ntop(AF_INET, &ip->ip_src, buf, INET_ADDRSTRLEN),
+                rcode_to_string(dnshdr->flags.rcode, msgbuf, 100));
+            return 1;
+    }
+
     return 0;
 }

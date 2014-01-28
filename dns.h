@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <netinet/ip.h>
 
 #pragma pack(1)
 typedef struct {
@@ -43,5 +44,7 @@ void dns_pack(char* qname, uint16_t qtype, uint16_t qclass, char** dns, unsigned
 int string_to_qtype(char* qtype_s);
 
 int string_to_qclass(char* qclass_s);
+
+int rcode_check(struct ip* ip, dns_header_t* dnshdr);
 
 #endif
