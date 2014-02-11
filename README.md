@@ -40,9 +40,9 @@ USAGE
  * -d: delay between packets. Deafault: 0.
  * -t: timeout after last probe. Default: 3 secs.
  * -o: optional output file for results.
- * -n: optional domain name to probe. Default: www.test.com.
+ * -n: optional domain name to probe. Default: current hostname.
  * -q: query type. Default: 1.
- * -c query class. Default: 1.
+ * -c: query class. Default: 1.
  * -r: do not randomize targets.
  * -l: show only relays that are above this amplification ratio.
  * -e: do not add EDNS0 record
