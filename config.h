@@ -17,7 +17,7 @@
 #define PACKAGE_NAME "namescan"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "namescan 0.1.1"
+#define PACKAGE_STRING "namescan 0.1.2"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "namescan"
@@ -26,4 +26,4 @@
 #define PACKAGE_URL "http://github.com/crondaemon/namescan"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.1.1"
+#define PACKAGE_VERSION "0.1.2"
