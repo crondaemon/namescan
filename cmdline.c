@@ -84,7 +84,7 @@ int parse_cmdline(int argc, char* argv[], radar_params_t* rp, scanner_params_t* 
 
     if (argc == 1) {
         usage(argv[0]);
-        return 1;
+        return 0;
     }
 
     activate_debug(argc, argv);
