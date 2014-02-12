@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
     // Start a separate thread for the radar
     radar_params.handle = radar_init(&radar_params);
     if (radar_params.handle == NULL) {
-        LOG_ERROR("Error in libpcap");
+        LOG_ERROR("Error in libpcap\n");
         return 1;
     }
     if (pthread_create(&t, NULL, radar, &radar_params)) {
