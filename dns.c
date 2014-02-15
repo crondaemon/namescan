@@ -71,7 +71,6 @@ void dns_pack(char* qname, uint16_t qtype, uint16_t qclass, char** dns, unsigned
     temp = htons(qclass);
     memcpy(*dns + sizeof(hdr) + strlen(qname) + 2 + 2, &temp, 2);
 
-    printf("AAAAAAAAAAAAAAAAAAAAAA %d\n", edns0);
     if (edns0 == true) {
         memcpy(*dns + sizeof(hdr) + strlen(qname) + 2 + 2 + 2, edns0_record, sizeof(edns0_record));
     }
