@@ -2,6 +2,7 @@
 #include <scanner.h>
 #include <fingerprint.h>
 #include <dns.h>
+#include <millerrabin.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -111,12 +112,6 @@ void scanner(scanner_params_t* sp)
         return;
     }
 
-    if (sp->randomize == false) {
-        off = 1;
-    } else {
-        off = 7; // TODO
-    }
-
     struct sockaddr_in sin;
     memset(&sin, 0x0, sizeof(sin));
     sin.sin_family = AF_INET;
@@ -144,6 +139,17 @@ void scanner(scanner_params_t* sp)
     for (i = 0; i < sp->ranges_count; i++) {
         diff = ntohl(sp->ranges[i].ip_to) - ntohl(sp->ranges[i].ip_from) + 1;
         ptr = ntohl(sp->ranges[i].ip_from);
+
+        if (sp->randomize == false) {
+            off = 1;
+        } else {
+            do {
+                off = rand() % diff;
+                if (off == 0)
+                    off = 1;
+            } while(!is_prime_mr(off));
+            LOG_DEBUG("Using %u as offset\n", off);
+        }
 
         if (diff % off == 0 && off > 1) {
             printf("%u %u\n", diff, off);
