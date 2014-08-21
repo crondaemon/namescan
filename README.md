@@ -33,6 +33,11 @@ USAGE
 
     Usage: ./namescan [-i <iface>] [-v] [-s <source>] [-d <delay>] [-t <timeout>] [-o <outfile>]
            [-n <domain name>] [-q <type>] [-c <class>] [-r] [-l <level>] [-e] <addresses to scan>
+           
+Related Projects
+================
+
+[dines](http://github.com/crondaemon/dines): the definitive DNS packet forger
 
  * -i: the interface to use. If not specified, the first available interface will be used
  * -v: verbose mode
