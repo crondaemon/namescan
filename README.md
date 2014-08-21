@@ -34,11 +34,6 @@ USAGE
     Usage: ./namescan [-i <iface>] [-v] [-s <source>] [-d <delay>] [-t <timeout>] [-o <outfile>]
            [-n <domain name>] [-q <type>] [-c <class>] [-r] [-l <level>] [-e] <addresses to scan>
            
-Related Projects
-================
-
-[dines](http://github.com/crondaemon/dines): the definitive DNS packet forger
-
  * -i: the interface to use. If not specified, the first available interface will be used
  * -v: verbose mode
  * -s: the source IP address to use. Default: the current interface IP.
@@ -55,3 +50,8 @@ Related Projects
 
 The addresses to scan can be specified as a comma-separated list of CIDR addresses.
 Example: `8.8.8.8/24,9.9.9.9/16`, or `8.8.4.4`.
+
+Related Projects
+================
+
+[dines](http://github.com/crondaemon/dines): the definitive DNS packet forger
