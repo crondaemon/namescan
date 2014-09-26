@@ -22,17 +22,20 @@ COMPILATION
 ===========
 To compile, just issue the following commands:
 
-    autoreconf -i
-    ./configure
-    make
+```
+autoreconf -i
+./configure
+make
+```
 
 USAGE
 =====
 
     namescan 0.1.2 - massive DNS scanner
 
-    Usage: ./namescan [-i <iface>] [-v] [-s <source>] [-d <delay>] [-t <timeout>] [-o <outfile>]
-           [-n <domain name>] [-q <type>] [-c <class>] [-r] [-l <level>] [-e] <addresses to scan>
+    Usage: ./namescan [-i <iface>] [-v] [-s <source>] [-d <delay>] [-t <timeout>] 
+        [-o <outfile>] [-n <domain name>] [-q <type>] [-c <class>] [-r] [-l <level>] 
+        [-e] <addresses to scan>
            
  * -i: the interface to use. If not specified, the first available interface will be used
  * -v: verbose mode
