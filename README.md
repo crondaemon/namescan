@@ -52,7 +52,7 @@ USAGE
  * ip address(es) to scan. See below.
 
 The addresses to scan can be specified as a comma-separated list of CIDR addresses.
-Example: `8.8.8.8/24,9.9.9.9/16`, or `8.8.4.4`.
+Example: `8.8.8.8/24,9.9.9.9/16` or `8.8.4.4`.
 
 Related Projects
 ================
