@@ -32,11 +32,12 @@ pcap_t* radar_init(radar_params_t* rp)
     bpf_u_int32 net;
 
     if (rp->dev == NULL) {
-        rp->dev = pcap_lookupdev(errbuf);
-        if (rp->dev == NULL) {
+        pcap_if_t* alldevsp;
+        if (pcap_findalldevs(&alldevsp, errbuf) == PCAP_ERROR) {
             LOG_ERROR("Can't lookup device: %s\n", errbuf);
             return NULL;
         }
+        rp->dev = alldevsp[0].name;
     }
 
     pcap_t* handle;
