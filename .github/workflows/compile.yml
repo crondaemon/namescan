@@ -1,0 +1,19 @@
+name: Compile on ubuntu
+
+on: [push]
+
+jobs:
+  ubuntu:
+    name: Compile
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install deps
+        run: sudo apt-get install libpcap-dev -y
+      - name: autoreconf
+        run: autoreconf -i
+      - name: configure
+        run: ./configure
+      - name: Make
+        run: make
