@@ -143,11 +143,14 @@ void scanner(scanner_params_t* sp)
         if (sp->randomize == false) {
             off = 1;
         } else {
-            do {
-                off = rand() % diff;
-                if (off == 0)
-                    off = 1;
-            } while(!is_prime_mr(off));
+            off = 1;
+            if (diff > 2) {
+                do {
+                    off = rand() % diff;
+                    if (off == 0)
+                        off = 1;
+                } while(!is_prime_mr(off));
+            }
             LOG_DEBUG("Using %u as offset\n", off);
         }
 
