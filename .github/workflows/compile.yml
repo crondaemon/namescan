@@ -11,9 +11,12 @@ jobs:
         uses: actions/checkout@v2
       - name: Install deps
         run: sudo apt-get install libpcap-dev -y
-      - name: autoreconf
-        run: autoreconf -i
-      - name: configure
-        run: ./configure
-      - name: Make
-        run: make
+      - run: autoreconf -i
+      - run: ./configure
+      - run: make
+      - run: make dist
+      - name: Upload package
+        uses: actions/upload-artifact@v2
+        with:
+          name: package
+          path: namescan-*.tar.gz
