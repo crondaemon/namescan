@@ -11,6 +11,8 @@ typedef struct {
     pcap_t* handle;
     FILE* outfile;
 	uint8_t level;
+    char* pcap_dumper_name;
+    pcap_dumper_t* pcap_dumper;
 } radar_params_t;
 
 extern radar_params_t radar_params;

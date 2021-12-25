@@ -53,6 +53,8 @@ int main(int argc, char* argv[])
     // Scanning finished. Cleaning up stuff
     if (radar_params.outfile)
         fclose(radar_params.outfile);
+    if (radar_params.pcap_dumper_name)
+        pcap_dump_close(radar_params.pcap_dumper);
 
     printf("\n");
     return 0;

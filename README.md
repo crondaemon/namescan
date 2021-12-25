@@ -35,7 +35,7 @@ USAGE
 
     Usage: ./namescan [-i <iface>] [-v] [-s <source>] [-d <delay>] [-t <timeout>] 
         [-o <outfile>] [-n <domain name>] [-q <type>] [-c <class>] [-r] [-l <level>] 
-        [-e] <addresses to scan>
+        [-p <name>] [-e] <addresses to scan>
            
  * -i: the interface to use. If not specified, the first available interface will be used
  * -v: verbose mode
@@ -44,6 +44,7 @@ USAGE
  * -t: timeout after last probe. Default: 3 secs.
  * -o: optional output file for results.
  * -n: optional domain name to probe. Default: current hostname.
+ * -p: optional pcap file of the probes.
  * -q: query type. Default: 1.
  * -c: query class. Default: 1.
  * -r: do not randomize targets.

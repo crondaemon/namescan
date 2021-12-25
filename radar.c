@@ -21,6 +21,8 @@ int radar_set_defaults(radar_params_t* rp)
     rp->dev = NULL;
     rp->outfile = NULL;
   	rp->level = 0;
+    rp->pcap_dumper_name = NULL;
+    rp->pcap_dumper = NULL;
   	return 0;
 }
 
@@ -63,6 +65,10 @@ pcap_t* radar_init(radar_params_t* rp)
     if (pcap_setfilter(handle, &fp) == -1) {
         fprintf(stderr, "Couldn't install filter: %s\n", pcap_geterr(handle));
         exit(2);
+    }
+
+    if (rp->pcap_dumper_name) {
+        rp->pcap_dumper = pcap_dump_open(handle, rp->pcap_dumper_name);
     }
 
     return handle;
@@ -161,5 +167,9 @@ void process_pkt(u_char* args, const struct pcap_pkthdr* h, const u_char* packet
         } else {
             LOG_DEBUG("\nIgnoring packet from %s\n", inet_ntop(AF_INET, &ip->ip_src, buf, INET_ADDRSTRLEN));
         }
+    }
+
+    if (rp->pcap_dumper_name) {
+        pcap_dump((u_char *)rp->pcap_dumper, h, packet);
     }
 }

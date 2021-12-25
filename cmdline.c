@@ -25,7 +25,7 @@ static void usage(char* name)
 {
     printf("Usage: %s [-i <iface>] [-v] [-s <source>] [-d <delay>] ", name);
     printf("[-t <timeout>] [-o <outfile>] [-n <domain name>] [-q <type>] ");
-    printf("[-c <class>] [-r] [-l <level>] [-e] <addresses to scan>");
+    printf("[-c <class>] [-r] [-l <level>] [-p <name>] [-e] <addresses to scan>");
     printf("\n\n");
 }
 
@@ -88,7 +88,7 @@ int parse_cmdline(int argc, char* argv[], radar_params_t* rp, scanner_params_t* 
 
     activate_debug(argc, argv);
 
-    while ((opt = getopt(argc, argv, "i:vs:d:t:o:n:q:c:hrl:e")) != -1) {
+    while ((opt = getopt(argc, argv, "i:vs:d:t:o:n:p:q:c:hrl:e")) != -1) {
         switch (opt) {
             case 'i':
                 rp->dev = strdup(optarg);
@@ -129,6 +129,9 @@ int parse_cmdline(int argc, char* argv[], radar_params_t* rp, scanner_params_t* 
             case 'n':
                 free(sp->qname);
                 sp->qname = strdup(optarg);
+                break;
+            case 'p':
+                rp->pcap_dumper_name = strdup(optarg);
                 break;
             case 'q':
                 val = strtol(optarg, (char**)NULL, 10);
