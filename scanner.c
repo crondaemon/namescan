@@ -70,7 +70,13 @@ void print_stats(int signo)
     LOG_INFO("%c[2K", 27);
     LOG_INFO("\r%u/%u (%.2f%%) ", partial, tot, (float)partial/(float)tot*100);
     LOG_INFO("%u pkt/s ", rate);
-    LOG_INFO("%u B/s ", rate * probesize);
+
+    unsigned band = rate * probesize;
+    if (band <= 2048) {
+        LOG_INFO("%u B/s ", band);
+    } else {
+        LOG_INFO("%u KB/s ", band / 1024);
+    }
 
     unsigned left;
 
