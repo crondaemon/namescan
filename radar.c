@@ -87,7 +87,7 @@ void print_server(struct ip* ip, float ratio, FILE* fp)
     char buf[INET_ADDRSTRLEN];
     LOG_INFO("%c[2K", 27);
     LOG_INFO("\rResponse from %s, ", inet_ntop(AF_INET, &ip->ip_src, buf, INET_ADDRSTRLEN));
-        LOG_INFO("amp ratio: %.2f\n", ratio);
+    LOG_INFO("amp ratio: %.2f\n", ratio);
     fflush(stdout);
     if (fp != NULL) {
         fprintf(fp, "%s\n", buf);

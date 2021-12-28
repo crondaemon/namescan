@@ -234,7 +234,8 @@ int rcode_check(struct ip* ip, dns_header_t* dnshdr)
             LOG_DEBUG("Not allowed from %s\n", inet_ntop(AF_INET, &ip->ip_src, buf, INET_ADDRSTRLEN));
             return 1;
         default:
-            LOG_ERROR("Error from %s: %s\n", inet_ntop(AF_INET, &ip->ip_src, buf, INET_ADDRSTRLEN),
+            LOG_INFO("%c[2K", 27);
+            LOG_ERROR("\rError from %s: %s\n", inet_ntop(AF_INET, &ip->ip_src, buf, INET_ADDRSTRLEN),
                 rcode_to_string(dnshdr->flags.rcode, msgbuf, 100));
             return 1;
     }
